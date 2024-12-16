@@ -1,0 +1,9 @@
+{
+  "name": "outer-noise",
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": ["perlin", "noise", "terrain", "wasm"],
+  "author": "BlobTheKat",
+  "license": "MIT",
+  "description": ""
+}
