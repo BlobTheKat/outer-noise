@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { createCanvas } from "https://deno.land/x/canvas@v1.4.2/mod.ts"
 
-const {instance: {exports}, module} = await WebAssembly.instantiate(fs.readFileSync('./target/wasm32-unknown-unknown/release/outer_perlin.wasm'))
+const {instance: {exports}, module} = await WebAssembly.instantiate(fs.readFileSync('./target/wasm32-unknown-unknown/release/outer_noise.wasm'))
 const startX = +process.argv[2] ?? -32, startY = +process.argv[3] ?? -32, width = +process.argv[4] || 64, height = +process.argv[5] || 64
 const ch = new Int32Array(exports.memory.buffer, +exports.chunk, 512), off = new Float32Array(exports.memory.buffer, +exports.offsets, 100)
 
@@ -17,7 +17,7 @@ for(let x = startX; x < startX+width; x++) for(let y = startY; y < startY+height
 	const s = performance.now()
 	for(let i = 0, j = 0; i < 5; i++, j += 5)
 		off[j] = off[j+1] = off[j+2] = off[j+3] = off[j+4] = ((y<<2)+i) * -.1
-	exports.fillNoise(x<<6, y<<6, 1)
+	exports.fillNoise(x<<6, y<<6, 0)
 	time += performance.now() - s
 	let offset = (x-startX<<6)+((startY+height-y<<12)-64)*width
 	let black = y < 0 ? 0xFFFF4400 : BLACK
