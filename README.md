@@ -17,33 +17,29 @@ import { setSeed, genNoise, fillOffsets } from 'outer-noise'
 
 setSeed('random-seed')
 
-// Noise offsets specified at every 16 tiles, which is interpolated by genNoise(). Negative offsets make 0/black/air more likely and positive offsets make 1/white/ground more likely
+// Noise offsets specified at every 16 tiles, which is interpolated by genNoise()
+// Negative offsets make 0 (air) more likely and positive offsets make 1 (ground) more likely
 // Here we make an offset that looks like
-// -.4 -.4 -.4 -.4 -.4
-// -.2 -.2 -.2 -.2 -.2
-//  .0  .0  .0  .0  .0
-//  .2  .2  .2  .2  .2
-//  .4  .4  .4  .4  .4
-// Note that the edges of adjacent chunks will share some values, which must be the same if you want nice continuous noise
-// The return value is a clamped int16 array with all values scaled up by 4096
-// You can also build your own array if you like
-const offsets = fillOffsets((x, y) => {
+//  32 | -.4 -.4 -.4 -.4 -.4
+//  16 | -.2 -.2 -.2 -.2 -.2
+//y  0 |  .0  .0  .0  .0  .0
+// -16 |  .2  .2  .2  .2  .2
+// -32 |  .4  .4  .4  .4  .4
+const offsetFn = (x, y) => {
 	return (y - 32) * -0.0125
-})
+}
 
 // Chunk coordinates
 const chX = 0, chY = 0
 // local_seed can be used to generate many (2^32) unique noises without changing the main seed
-let arr = genNoise(chX, chY, /*local_seed*/ 0)
+let arr = genNoise(offsetFn, chX, chY, /*local_seed*/ 0)
 
 // Note: arr is only valid until the next call to genNoise(), copy it if necessary!
 noiseCache.set(chX, chY, arr = arr.slice())
 
-// arr contains 512 8-bit values arranged left-to-right, bottom-to-top, little-endian
+// arr contains 512 8-bit values arranged left-to-right, bottom-to-top, least-significant-bit first
 
-// Here we assume host endianness is little
-
-function isGround(tileX, tileY){
+function getValue(tileX, tileY){
 	return arr[tileY<<3|tileX>>3] >> (tileX&7) & 1
 }
 ```
