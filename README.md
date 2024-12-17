@@ -13,9 +13,10 @@ deno -A test.js "creashaks organzine" -32 -10 64 20
 # Interface
 
 ```js
-import { setSeed, genNoise } from 'outer-noise'
+import { setSeed, genNoise, fillOffsets } from 'outer-noise'
 
 setSeed('random-seed')
+
 // Noise offsets specified at every 16 tiles, which is interpolated by genNoise(). Negative offsets make 0/black/air more likely and positive offsets make 1/white/ground more likely
 // Here we make an offset that looks like
 // -.4 -.4 -.4 -.4 -.4
@@ -24,10 +25,12 @@ setSeed('random-seed')
 //  .2  .2  .2  .2  .2
 //  .4  .4  .4  .4  .4
 // Note that the edges of adjacent chunks will share some values, which must be the same if you want nice continuous noise
-const offsets = new Float32Array(25)
-for(let x = 0; x <= 4; x++) for(let y = 0; y <= 4; y++){
-	offsets[x + y*5] = (y - 2) * -0.2
-}
+// The return value is a clamped int16 array with all values scaled up by 4096
+// You can also build your own array if you like
+const offsets = fillOffsets((x, y) => {
+	return (y - 32) * -0.0125
+})
+
 // Chunk coordinates
 const chX = 0, chY = 0
 // local_seed can be used to generate many (2^32) unique noises without changing the main seed
