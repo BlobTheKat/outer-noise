@@ -11,7 +11,7 @@ export function genNoise(cb, x, y, localSeed = 0){
 	return ch
 }
 export function genNoisev(arr, x, y, localSeed = 0){
-	for(let j=0;j<25;j++) mem.setFloat32(off+(j<<4), arr[j], true)
+	for(let j=0;j<25;j++) mem.setFloat32(off+(j<<2), arr[j], true)
 	exports.fillNoise(x, y, localSeed)
 	return ch
 }
