@@ -6,6 +6,9 @@ pub static mut chunk: [u64; 64] = [0; 64];
 #[export_name="seed"]
 pub static mut seed: [u32; 8] = [0; 8];
 
+#[export_name="chunk2"]
+pub static mut chunk2: [i32; 4096] = [0; 4096];
+
 #[export_name="offsets"]
 pub static mut p16: [f32; 25] = [0.0; 25];
 
@@ -120,5 +123,18 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32) {
 		}
 		chunk[y] = line;
 		y += 1; yf += 0.015625;
+	}
+}
+
+#[export_name="expand"]
+pub unsafe fn expand(){
+	let zero = chunk2[0];
+	let one = chunk2[1]^zero;
+	for y in 0..64 {
+		let line = chunk[y];
+		let c = &mut chunk2[y<<6 .. y+1<<6];
+		for x in 0..64 {
+			c[x] = zero ^ (-((line>>x&1) as i32) & one);
+		}
 	}
 }

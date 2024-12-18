@@ -3,6 +3,7 @@ export const seed = new Int32Array(8)
 const mem = new DataView(exports.memory.buffer)
 const sd = +exports.seed, off = +exports.offsets
 const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512)
+export const chunk = new Int32Array(exports.memory.buffer, +exports.chunk2, 4096)
 
 export function genNoise(cb, x, y, localSeed = 0){
 	for(let yi=0,j=off;yi<65;yi+=16) for(let xi=0;xi<65;xi+=16,j+=4) mem.setFloat32(j, cb(x+xi, y+yi), true)
@@ -13,6 +14,12 @@ export function genNoisev(arr, x, y, localSeed = 0){
 	for(let j=0;j<25;j++) mem.setFloat32(off+(j<<4), arr[j], true)
 	exports.fillNoise(x, y, localSeed)
 	return ch
+}
+
+export function expand(noise, a = 0, b = 0){
+	chunk[0] = a; chunk[1] = b
+	ch.set(noise)
+	exports.expand()
 }
 
 const enc = new TextEncoder(), {imul} = Math
