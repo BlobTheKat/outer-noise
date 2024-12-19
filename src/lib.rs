@@ -142,18 +142,16 @@ pub unsafe fn expand() -> i32{
 		let line = chunk[y as usize];
 		let mut l = line & !last;
 		last = line;
-		if swap_bytes{
-			loop {
+		if swap_bytes {
+			while l != 0 {
 				let x = l.trailing_zeros();
-				if x == 64 { break; }
 				l &= !(1<<x);
 				surfaces[sfi] = ((x | y<<6) as u16).swap_bytes();
 				sfi += 1;
 			}
 		}else{
-			loop {
+			while l != 0 {
 				let x = l.trailing_zeros();
-				if x == 64 { break; }
 				l &= !(1<<x);
 				surfaces[sfi] = (x | y<<6) as u16;
 				sfi += 1;
@@ -170,19 +168,19 @@ pub unsafe fn expand() -> i32{
 		}
 		let mut l = line & !last;
 		last = line;
-		if swap_bytes{
-			loop {
+		if swap_bytes {
+			while l != 0 {
 				let x = l.trailing_zeros();
-				if x == 64 { break; }
 				l &= !(1<<x);
 				surfaces[sfi] = ((x | y<<6) as u16).swap_bytes();
+				sfi += 1;
 			}
 		}else{
-			loop {
+			while l != 0 {
 				let x = l.trailing_zeros();
-				if x == 64 { break; }
 				l &= !(1<<x);
 				surfaces[sfi] = (x | y<<6) as u16;
+				sfi += 1;
 			}
 		}
 	}
