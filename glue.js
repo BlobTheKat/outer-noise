@@ -21,8 +21,8 @@ export function expand(noise, noise2, a = 0, b = 0){
 	ch.set(noise)
 	ch2.set(noise2)
 	surf[0] = 1
-	exports.expand()
-	
+	const c = exports.expand()
+	return new Uint16Array(surf.buffer, surf.byteOffset, c)
 }
 
 const enc = new TextEncoder(), {imul} = Math
