@@ -1,8 +1,8 @@
 const {instance: {exports}, module} = await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()))
 export const seed = new Int32Array(8)
-const mem = new DataView(exports.memory.buffer)
+const mem = new DataView(exports.memory.buffer), surf = new Uint16Array(exports.memory.buffer, +exports.surfaces, 2560)
 const sd = +exports.seed, off = +exports.offsets
-const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512)
+const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512), ch2 = new Uint8Array(exports.memory.buffer, exports.chunk + 512, 128)
 export const chunk = new Int32Array(exports.memory.buffer, +exports.chunk2, 4096)
 
 export function genNoise(cb, x, y, localSeed = 0){
@@ -16,15 +16,21 @@ export function genNoisev(arr, x, y, localSeed = 0){
 	return ch
 }
 
-export function expand(noise, a = 0, b = 0){
+export function expand(noise, noise2, a = 0, b = 0){
 	chunk[0] = a; chunk[1] = b
 	ch.set(noise)
+	ch2.set(noise2)
+	surf[0] = 1
 	exports.expand()
+	
 }
 
 const enc = new TextEncoder(), {imul} = Math
 export function setSeed(str){
-	if(str instanceof ArrayBuffer) return void(sd.set(new Int32Array(sd, 0, 8)))
+	if(typeof str == 'object'){
+		for(let i=0,j=sd;i<8;i++,j+=4) mem.setInt32(j, str[i], true)
+		return
+	}
 	const arr = enc.encode(str+'\0')
 	seed.fill(0)
 	let x = 0xe336beb9|0, i = 0

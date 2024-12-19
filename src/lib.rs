@@ -1,7 +1,10 @@
 #![allow(non_upper_case_globals)]
 
 #[export_name="chunk"]
-pub static mut chunk: [u64; 64] = [0; 64];
+pub static mut chunk: [u64; 80] = [0; 80];
+
+#[export_name="surfaces"]
+pub static mut surfaces: [u16; 2560] = [0; 2560];
 
 #[export_name="seed"]
 pub static mut seed: [u32; 8] = [0; 8];
@@ -127,14 +130,61 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32) {
 }
 
 #[export_name="expand"]
-pub unsafe fn expand(){
+pub unsafe fn expand() -> i32{
 	let zero = chunk2[0];
 	let one = chunk2[1]^zero;
-	for y in 0..64 {
-		let line = chunk[y];
-		let c = &mut chunk2[y<<6 .. y+1<<6];
+	let mut last: u64 = 0xFFFF_FFFF_FFFF_FFFF;
+	let mut y = 80u32;
+	let mut sfi = 0;
+	let swap_bytes = surfaces[0] != 1;
+	while y > 64 {
+		y -= 1;
+		let line = chunk[y as usize];
+		let mut l = line & !last;
+		last = line;
+		if swap_bytes{
+			loop {
+				let x = l.trailing_zeros();
+				if x == 64 { break; }
+				l &= !(1<<x);
+				surfaces[sfi] = ((x | y<<6) as u16).swap_bytes();
+				sfi += 1;
+			}
+		}else{
+			loop {
+				let x = l.trailing_zeros();
+				if x == 64 { break; }
+				l &= !(1<<x);
+				surfaces[sfi] = (x | y<<6) as u16;
+				sfi += 1;
+			}
+		}
+	}
+	while y > 0 {
+		y -= 1;
+		let yu = y as usize;
+		let line = chunk[yu];
+		let c = &mut chunk2[yu<<6 .. yu+1<<6];
 		for x in 0..64 {
 			c[x] = zero ^ (-((line>>x&1) as i32) & one);
 		}
+		let mut l = line & !last;
+		last = line;
+		if swap_bytes{
+			loop {
+				let x = l.trailing_zeros();
+				if x == 64 { break; }
+				l &= !(1<<x);
+				surfaces[sfi] = ((x | y<<6) as u16).swap_bytes();
+			}
+		}else{
+			loop {
+				let x = l.trailing_zeros();
+				if x == 64 { break; }
+				l &= !(1<<x);
+				surfaces[sfi] = (x | y<<6) as u16;
+			}
+		}
 	}
+	sfi as i32
 }
