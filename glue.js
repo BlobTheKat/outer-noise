@@ -1,8 +1,8 @@
 const {instance: {exports}, module} = await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()))
 export const seed = new Int32Array(8)
-const mem = new DataView(exports.memory.buffer), surf = new Uint16Array(exports.memory.buffer, +exports.surfaces, 2560)
+const mem = new DataView(exports.memory.buffer), surf = new Int16Array(exports.memory.buffer, +exports.surfaces, 1)
 const sd = +exports.seed, off = +exports.offsets
-const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512), ch2 = new Uint8Array(exports.memory.buffer, exports.chunk + 512, 128)
+const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512), ch2 = new Uint8Array(exports.memory.buffer, exports.chunk + 512, 256)
 export const chunk = new Int32Array(exports.memory.buffer, +exports.chunk2, 4096)
 
 export function genNoise(cb, x, y, localSeed = 0){
@@ -16,13 +16,14 @@ export function genNoisev(arr, x, y, localSeed = 0){
 	return ch
 }
 
-export function expand(noise, noise2, a = 0, b = 0){
+export function expand(noise, noiseUp, noiseDown){
 	chunk[0] = a; chunk[1] = b
 	ch.set(noise)
-	ch2.set(noise2)
+	ch2.set(noiseUp)
+	ch2.set(noiseDown, 128)
 	surf[0] = 1
 	const c = exports.expand()
-	return new Uint16Array(surf.buffer, surf.byteOffset, c)
+	return new Int16Array(surf.buffer, surf.byteOffset, c)
 }
 
 const enc = new TextEncoder(), {imul} = Math
