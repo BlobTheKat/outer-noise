@@ -3,8 +3,8 @@ export const seed = new Int32Array(8)
 const mem = new DataView(exports.memory.buffer), surf = new Int16Array(exports.memory.buffer, +exports.surfaces, 1)
 const sd = +exports.seed, off = +exports.offsets
 const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512), ch2 = new Uint8Array(exports.memory.buffer, exports.chunk + 512, 256)
-export const chunk = new Int32Array(exports.memory.buffer, +exports.chunk2, 4096)
-const chunk2 = new Int32Array(chunk.buffer, chunk.byteOffset + 16384, 192)
+export const chunk = new Int32Array(exports.memory.buffer, +exports.chunk2 + 768, 4096)
+const chunk2 = new Int32Array(chunk.buffer, +exports.chunk2, 384)
 
 export function genNoise(cb, x, y, localSeed = 0){
 	for(let yi=0,j=off;yi<65;yi+=16) for(let xi=0;xi<65;xi+=16,j+=4) mem.setFloat32(j, cb(x+xi, y+yi), true)
@@ -17,14 +17,14 @@ export function genNoisev(arr, x, y, localSeed = 0){
 	return ch
 }
 
-export function expand(layers0, layers1, noise, noiseUp, noiseDown){
+export function expand(x, y, localSeed = 0, layers0, layers1, noise, noiseUp, noiseDown){
 	ch.set(noise)
 	ch2.set(noiseUp)
 	ch2.set(noiseDown, 128)
-	chunk.set(layers0, 3904)
-	chunk2.set(layers1)
+	chunk2.set(layers0)
+	chunk2.set(layers1, 192)
 	surf[0] = 1
-	const c = exports.expand()
+	const c = exports.expand(x, y, localSeed)
 	return new Int16Array(surf.buffer, surf.byteOffset, c)
 }
 

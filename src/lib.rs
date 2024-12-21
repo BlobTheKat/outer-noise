@@ -161,24 +161,24 @@ pub unsafe fn expand(cx: u32, cy: u32, sd: u32) -> i32{
 		add_surfaces(swap_bytes, &mut sfi, y, line & !last);
 		last = line;
 	}
-	let mut j = 3904;
+	let mut j = 192;
 	while y > 0 {
-		y -= 1;
+		y -= 1; j -= 3;
 		let yu = y as usize;
 		let line = chunk[yu];
-		let c = &mut chunk2[yu<<6 .. yu+1<<6];
-		let b0 = chunk2[j+2];
+		let c = &mut chunk2[yu+3<<6 .. yu+4<<6];
+		let b0 = chunk2[j+1];
 		let p = chunk2[j] as u8;
-		let b1 = chunk2[j+3];
-		let q = chunk2[j+1] as u8;
+		let b1 = chunk2[j+193];
+		let q = chunk2[j+192] as u8;
 		if (p|q) == 0 {
 			let b1a = b1^b0;
 			for x in 0..64 {
 				c[x as usize] = b0 ^ (-((line>>x&1) as i32) & b1a);
 			}
 		}else{
-			let b2a = chunk2[j+4]^b0;
-			let b3a = chunk2[j+5]^b1;
+			let b2a = chunk2[j+2]^b0;
+			let b3a = chunk2[j+194]^b1;
 			for x in 0..64 {
 				let rand = hash3(s, cx+x, cy+y) as u8;
 				c[x as usize] = if (line>>x&1)==0 {
@@ -189,7 +189,7 @@ pub unsafe fn expand(cx: u32, cy: u32, sd: u32) -> i32{
 			}
 		}
 		add_surfaces(swap_bytes, &mut sfi, y, line & !last);
-		last = line; j += 6;
+		last = line;
 	}
 	y = 96;
 	while y > 80 {
