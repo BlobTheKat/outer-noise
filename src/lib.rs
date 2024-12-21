@@ -36,7 +36,7 @@ fn utof(a: u32, scale: f32) -> f32 { (a as i32 as f32) * (scale / 2147483648.0) 
 // Cubic lerp 3x² - 2x³
 fn lerp(a: f32, b: f32, x: f32) -> f32 { a + (b-a) * (3.0-2.0*x)*x*x }
 // Linear lerp x
-//fn lerp(a: f32, b: f32, x: f32) -> f32 { a + (b-a) * x }
+fn lerp1(a: f32, b: f32, x: f32) -> f32 { a + (b-a) * x }
 // Test lerp step(x, 0.5)
 //fn lerp(a: f32, b: f32, x: f32) -> f32 { if x >= 0.5 { b } else { a } }
 
@@ -92,10 +92,10 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32) {
 	} }
 	
 	let mut y = 0;
-	let mut yf = 0f32;
+	let mut yf = 0.0078125f32;
 	while y < 64{
 		let mut x = 0;
-		let mut xf = 0f32;
+		let mut xf = 0.0078125f32;
 		let mut line: u64 = 0;
 		let p256_0 = lerp(p256_00, p256_01, (y256+yf)*0.25);
 		let p256_1 = lerp(p256_10, p256_11, (y256+yf)*0.25);
@@ -113,7 +113,7 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32) {
 			let base = base + lerp(lerp(p32[i], p32[i+3], yf), lerp(p32[i+1], p32[i+4], yf), (x&31) as f32 * 0.03125);
 			let i = (x>>4) + (y>>4)*5;
 			let yf = (y&15) as f32 * 0.0625;
-			let base = base + lerp(lerp(p16[i], p16[i+5], yf), lerp(p16[i+1], p16[i+6], yf), (x&15) as f32 * 0.0625);
+			let base = base + lerp1(lerp1(p16[i], p16[i+5], yf), lerp1(p16[i+1], p16[i+6], yf), (x&15) as f32 * 0.0625);
 			let i = (x>>3) + (y>>3)*9;
 			let yf = (y&7) as f32 * 0.125;
 			let base = base + lerp(lerp(p8[i], p8[i+9], yf), lerp(p8[i+1], p8[i+10], yf), (x&7) as f32 * 0.125);
