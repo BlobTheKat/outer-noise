@@ -16,11 +16,11 @@ export function genNoisev(arr, x, y, localSeed = 0){
 	return ch
 }
 
-export function expand(noise, noiseUp, noiseDown){
-	chunk[0] = a; chunk[1] = b
+export function expand(layers, noise, noiseUp, noiseDown){
 	ch.set(noise)
 	ch2.set(noiseUp)
 	ch2.set(noiseDown, 128)
+	chunk.set(layers, 3712)
 	surf[0] = 1
 	const c = exports.expand()
 	return new Int16Array(surf.buffer, surf.byteOffset, c)
