@@ -10,7 +10,7 @@ pub static mut surfaces: [u16; 3072] = [0; 3072];
 pub static mut seed: [u32; 8] = [0; 8];
 
 #[export_name="chunk2"]
-pub static mut chunk2: [i32; 4096] = [0; 4096];
+pub static mut chunk2: [i32; 4288] = [0; 4288];
 
 #[export_name="offsets"]
 pub static mut p16: [f32; 25] = [0.0; 25];
@@ -161,7 +161,7 @@ pub unsafe fn expand(cx: u32, cy: u32, sd: u32) -> i32{
 		add_surfaces(swap_bytes, &mut sfi, y, line & !last);
 		last = line;
 	}
-	let mut j = 3712;
+	let mut j = 3904;
 	while y > 0 {
 		y -= 1;
 		let yu = y as usize;
