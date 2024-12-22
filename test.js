@@ -5,7 +5,7 @@ import { genNoise, setSeed, getSeedHash } from './dst/index.js'
 setSeed(process.argv[2] || '')
 console.log("Seedhash: \x1b[33m%s\x1b[m", getSeedHash())
 
-const startX = +(process.argv[3] ?? -32), startY = +(process.argv[4] ?? -16), width = +process.argv[5] || 64, height = +process.argv[6] || 32
+const startX = +(process.argv[3] ?? -16), startY = +(process.argv[4] ?? -8), width = +process.argv[5] || 32, height = +process.argv[6] || 16
 
 const canvas = createCanvas(width<<6, height<<6), ctx = canvas.getContext('2d')
 const img = new ImageData(canvas.width, canvas.height)
@@ -17,7 +17,7 @@ let time = 0
 const s = performance.now()
 for(let x = startX; x < startX+width; x++) for(let y = startY; y < startY+height; y++){
 	const s = performance.now()
-	const ch = genNoise((x, y) => y * -.00625, x<<6, y<<6, 0)
+	const ch = genNoise((x, y) => y * -.015, x<<6, y<<6, 0, 8)
 	time += performance.now() - s
 	let offset = (x-startX<<6)+((startY+height-y<<12)-64)*width
 	let black = y < 0 ? 0xFFFF4400 : BLACK

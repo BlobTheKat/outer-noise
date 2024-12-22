@@ -1,4 +1,4 @@
-const {instance: {exports}, module} = await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()))
+const {instance: {exports}, module} = await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()), {console})
 export const seed = new Int32Array(8)
 const mem = new DataView(exports.memory.buffer), surf = new Int16Array(exports.memory.buffer, +exports.surfaces, 1)
 const sd = +exports.seed, off = +exports.offsets
@@ -6,14 +6,14 @@ const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512), ch2 = new
 export const chunk = new Int32Array(exports.memory.buffer, +exports.chunk2 + 768, 4096)
 const chunk2 = new Int32Array(chunk.buffer, +exports.chunk2, 384)
 
-export function genNoise(cb, x, y, localSeed = 0){
+export function genNoise(cb, x, y, localSeed = 0, p = 6, r = 0.5){
 	for(let yi=0,j=off;yi<65;yi+=16) for(let xi=0;xi<65;xi+=16,j+=4) mem.setFloat32(j, cb(x+xi, y+yi), true)
-	exports.fillNoise(x, y, localSeed)
+	exports.fillNoise(x, y, localSeed, p, r)
 	return ch
 }
-export function genNoisev(arr, x, y, localSeed = 0){
+export function genNoisev(arr, x, y, localSeed = 0, p = 6, r = 0.5){
 	for(let j=0;j<25;j++) mem.setFloat32(off+(j<<2), arr[j], true)
-	exports.fillNoise(x, y, localSeed)
+	exports.fillNoise(x, y, localSeed, p, r)
 	return ch
 }
 
