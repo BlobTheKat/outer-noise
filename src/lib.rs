@@ -250,3 +250,34 @@ pub unsafe fn expand(cx: u32, cy: u32, sd: u32) -> i32{
 	}
 	sfi as i32
 }
+
+pub struct Biome{
+	temp: f32, humd: f32,
+	i_prio: f32, block: i32,
+	count: usize, next: usize
+}
+
+#[export_name="findBiome"]
+pub unsafe fn find_biome(arr: *const Biome, base: usize, temp: f32, humd: f32, block: i32) -> usize{
+	let mut base = base;
+	loop {
+		let cur = &*(arr.add(base));
+		let count = cur.count;
+		if count == 0{ return base; }
+		let mut best_dist = f32::INFINITY;
+		let mut best_biome = base;
+		for i in cur.next..(cur.next+count) {
+			let n2 = &*arr.add(i);
+			if n2.block != 2147483647 && n2.block != block { continue; }
+			let dx = n2.temp - temp;
+			let dy = n2.humd - humd;
+			let dist_sq = (dx*dx + dy*dy) * n2.i_prio;
+			if dist_sq <= best_dist {
+				best_dist = dist_sq;
+				best_biome = i;
+			}
+		}
+		if best_biome == base{ return best_biome; }
+		base = best_biome;
+	}
+}

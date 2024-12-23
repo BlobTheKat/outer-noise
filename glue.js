@@ -60,3 +60,20 @@ export function getSeedHash(){
 	for(const i of seed) x += (i>>>0).toString(16).padStart(8, '0')
 	return x
 }
+
+const biomeBase = +exports.__heap_base
+let biomeTip = biomeBase, j = 0
+export const addBiome = (t=0,h=0,p=0,b=0,c=0,n=0) => {
+	const i = biomeTip
+	biomeTip += 24
+	if(biomeTip > mem.byteLength) exports.memory.grow(1)
+	mem.setFloat32(i, t, true)
+	mem.setFloat32(i+4, h, true)
+	mem.setFloat32(i+8, 1/(p*p), true)
+	mem.setInt32(i+12, b, true)
+	mem.setUint32(i+16, c, true)
+	mem.setUint32(i+20, n, true)
+	return j++
+}
+
+export const findBiome = (i=0, t=0, h=0, b=0) => exports.findBiome(biomeBase, i, t, h, b)
