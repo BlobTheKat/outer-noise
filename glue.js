@@ -1,4 +1,4 @@
-const {instance: {exports}, module} = await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()), {console})
+const {instance: {exports}, module} = await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()))
 export const seed = new Int32Array(8)
 const mem = new DataView(exports.memory.buffer), surf = new Int16Array(exports.memory.buffer, +exports.surfaces, 1)
 const sd = +exports.seed, off = +exports.offsets
