@@ -4,7 +4,7 @@ const mem = new DataView(exports.memory.buffer), surf = new Int16Array(mem.buffe
 const sd = +exports.seed, off = +exports.offsets
 const chi = +exports.chunk
 const ch = new Uint8Array(mem.buffer, chi, 512)
-const chunk = new Int32Array(mem.buffer, +exports.chunk2 + 768, 4096)
+export const chunk = new Int32Array(mem.buffer, +exports.chunk2 + 768, 4096)
 const chunk2 = new Int32Array(chunk.buffer, +exports.chunk2, 384)
 
 export function genNoise(cb, x, y, localSeed = 0, p = 6, r = 0.5){
@@ -24,7 +24,6 @@ export function expand(x, y, localSeed = 0, layers0, layers1, noise){
 	chunk2.set(layers1, 192)
 	surf[0] = 1
 	exports.expand(x, y, localSeed)
-	return chunk
 }
 
 const enc = new TextEncoder(), {imul} = Math
