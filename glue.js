@@ -1,31 +1,30 @@
-const {instance: {exports}, module} = await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()))
+const {exports} = (await WebAssembly.instantiate(Uint8Array.from(atob('{{__wasm_module__}}'), c => c.charCodeAt()))).instance
 export const seed = new Int32Array(8)
-const mem = new DataView(exports.memory.buffer), surf = new Int16Array(exports.memory.buffer, +exports.surfaces, 1)
+const mem = new DataView(exports.memory.buffer), surf = new Int16Array(mem.buffer, +exports.surfaces, 1)
 const sd = +exports.seed, off = +exports.offsets
-const ch = new Uint8Array(exports.memory.buffer, +exports.chunk, 512), ch2 = new Uint8Array(exports.memory.buffer, exports.chunk + 512, 256)
-export const chunk = new Int32Array(exports.memory.buffer, +exports.chunk2 + 768, 4096)
+const chi = +exports.chunk
+const ch = new Uint8Array(mem.buffer, chi, 512)
+const chunk = new Int32Array(mem.buffer, +exports.chunk2 + 768, 4096)
 const chunk2 = new Int32Array(chunk.buffer, +exports.chunk2, 384)
 
 export function genNoise(cb, x, y, localSeed = 0, p = 6, r = 0.5){
 	for(let yi=0,j=off;yi<65;yi+=16) for(let xi=0;xi<65;xi+=16,j+=4) mem.setFloat32(j, cb(x+xi, y+yi), true)
-	exports.fillNoise(x, y, localSeed, p, r)
-	return ch
+	const i = exports.fillNoise(x, y, localSeed, p, r)
+	return new Uint8Array(mem.buffer, chi, (256+i)<<1)
 }
 export function genNoisev(arr, x, y, localSeed = 0, p = 6, r = 0.5){
 	for(let j=0;j<25;j++) mem.setFloat32(off+(j<<2), arr[j], true)
-	exports.fillNoise(x, y, localSeed, p, r)
-	return ch
+	const i = exports.fillNoise(x, y, localSeed, p, r)
+	return new Uint8Array(mem.buffer, chi, (256+i)<<1)
 }
 
-export function expand(x, y, localSeed = 0, layers0, layers1, noise, noiseUp, noiseDown){
+export function expand(x, y, localSeed = 0, layers0, layers1, noise){
 	ch.set(noise)
-	ch2.set(noiseUp)
-	ch2.set(noiseDown, 128)
 	chunk2.set(layers0)
 	chunk2.set(layers1, 192)
 	surf[0] = 1
-	const c = exports.expand(x, y, localSeed)
-	return new Int16Array(surf.buffer, surf.byteOffset, c)
+	exports.expand(x, y, localSeed)
+	return chunk
 }
 
 const enc = new TextEncoder(), {imul} = Math

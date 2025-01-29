@@ -1,10 +1,15 @@
 #![allow(non_upper_case_globals)]
 
-#[export_name="chunk"]
-pub static mut chunk: [u64; 96] = [0; 96];
+#[repr(C)]
+pub struct Chunk{
+	blocks: [u64; 64],
+	surfaces: [u16; 2048]
+}
 
-#[export_name="surfaces"]
-pub static mut surfaces: [u16; 3072] = [0; 3072];
+#[export_name="chunk"]
+pub static mut chunk: Chunk = Chunk {
+	blocks: [0; 64], surfaces: [0; 2048]
+};
 
 #[export_name="seed"]
 pub static mut seed: [u32; 8] = [0; 8];
@@ -41,7 +46,8 @@ fn lerp1(a: f32, b: f32, x: f32) -> f32 { a + (b-a) * x }
 //fn lerp(a: f32, b: f32, x: f32) -> f32 { if x >= 0.5 { b } else { a } }
 
 #[export_name="fillNoise"]
-pub unsafe fn fill_noise(x: u32, y: u32, sd: u32, period: f32, roughness: f32) {
+pub unsafe fn fill_noise(x: u32, y: u32, sd: u32, period: f32, roughness: f32) -> i32 {
+	let swap_bytes = chunk.surfaces[0] != 1;
 	let mut sc = 1.0;
 	let mut p = period;
 	while p > 7.0{
@@ -145,6 +151,8 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32, period: f32, roughness: f32) {
 	
 	let mut y = 0;
 	let mut yf = 0.0078125f32;
+	let mut air: u64 = 0;
+	let mut sfi: usize = 0;
 	while y < 64{
 		let mut x = 0;
 		let mut xf = 0.0078125f32;
@@ -174,48 +182,43 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32, period: f32, roughness: f32) {
 			if base > 0.0 { line |= 1<<x; }
 			x += 1; 
 		}
-		chunk[y] = line;
+		chunk.blocks[y] = line;
+		let l = line&air;
+		add_surfaces(swap_bytes, &mut sfi, y, l);
+		air = !line;
 		y += 1; yf += 0.015625;
 	}
+	sfi as i32
 }
 
-unsafe fn add_surfaces(swap_bytes: bool, sfi: &mut usize, y: u32, l: u64){
+unsafe fn add_surfaces(swap_bytes: bool, sfi: &mut usize, y: usize, l: u64){
 	let mut l = l;
 	if swap_bytes {
 		while l != 0 {
-			let x = l.trailing_zeros();
+			let x = l.trailing_zeros() as usize;
 			l &= !(1<<x);
-			surfaces[*sfi] = ((x | y<<6) as u16).swap_bytes();
+			chunk.surfaces[*sfi] = ((x | y<<6) as u16).swap_bytes();
 			*sfi += 1;
 		}
 	}else{
 		while l != 0 {
-			let x = l.trailing_zeros();
+			let x = l.trailing_zeros() as usize;
 			l &= !(1<<x);
-			surfaces[*sfi] = (x | y<<6) as u16;
+			chunk.surfaces[*sfi] = (x | y<<6) as u16;
 			*sfi += 1;
 		}
 	}
 }
 
 #[export_name="expand"]
-pub unsafe fn expand(cx: u32, cy: u32, sd: u32) -> i32{
-	let mut last: u64 = 0xFFFF_FFFF_FFFF_FFFF;
-	let mut y = 80u32;
-	let mut sfi = 0;
-	let swap_bytes = surfaces[0] != 1;
+pub unsafe fn expand(cx: u32, cy: u32, sd: u32){
+	let mut y = 64;
 	let s = hash2(seed[3]^seed[2]^seed[1], sd);
-	while y > 64 {
-		y -= 1;
-		let line = chunk[y as usize];
-		add_surfaces(swap_bytes, &mut sfi, y, line & !last);
-		last = line;
-	}
 	let mut j = 192;
 	while y > 0 {
 		y -= 1; j -= 3;
 		let yu = y as usize;
-		let line = chunk[yu];
+		let line = chunk.blocks[yu];
 		let c = &mut chunk2[yu+3<<6 .. yu+4<<6];
 		let b0 = chunk2[j+1];
 		let p = chunk2[j] as u8;
@@ -238,17 +241,7 @@ pub unsafe fn expand(cx: u32, cy: u32, sd: u32) -> i32{
 				}
 			}
 		}
-		add_surfaces(swap_bytes, &mut sfi, y, line & !last);
-		last = line;
 	}
-	y = 96;
-	while y > 80 {
-		y -= 1;
-		let line = chunk[y as usize];
-		add_surfaces(swap_bytes, &mut sfi, y-96, line & !last);
-		last = line;
-	}
-	sfi as i32
 }
 
 pub struct Biome{
