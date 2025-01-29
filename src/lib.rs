@@ -151,7 +151,7 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32, period: f32, roughness: f32) -
 	
 	let mut y = 0;
 	let mut yf = 0.0078125f32;
-	let mut air: u64 = 0;
+	let mut last: u64 = 0;
 	let mut sfi: usize = 0;
 	while y < 64{
 		let mut x = 0;
@@ -183,9 +183,9 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32, period: f32, roughness: f32) -
 			x += 1; 
 		}
 		chunk.blocks[y] = line;
-		let l = line&air;
+		let l = !line&last;
 		add_surfaces(swap_bytes, &mut sfi, y, l);
-		air = !line;
+		last = line;
 		y += 1; yf += 0.015625;
 	}
 	sfi as i32
@@ -193,18 +193,19 @@ pub unsafe fn fill_noise(x: u32, y: u32, sd: u32, period: f32, roughness: f32) -
 
 unsafe fn add_surfaces(swap_bytes: bool, sfi: &mut usize, y: usize, l: u64){
 	let mut l = l;
+	let y = (y as u16) << 6;
 	if swap_bytes {
 		while l != 0 {
-			let x = l.trailing_zeros() as usize;
+			let x = l.trailing_zeros() as u16;
 			l &= !(1<<x);
-			chunk.surfaces[*sfi] = ((x | y<<6) as u16).swap_bytes();
+			chunk.surfaces[*sfi] = (x | y).swap_bytes();
 			*sfi += 1;
 		}
 	}else{
 		while l != 0 {
-			let x = l.trailing_zeros() as usize;
+			let x = l.trailing_zeros() as u16;
 			l &= !(1<<x);
-			chunk.surfaces[*sfi] = (x | y<<6) as u16;
+			chunk.surfaces[*sfi] = (x | y) as u16;
 			*sfi += 1;
 		}
 	}
